@@ -63,12 +63,7 @@ func UpdateTask(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid task payload")
 	}
 
-	taskID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid task ID format")
-	}
-
-	task.ID = uint(taskID)
+	task.ID = c.Param("id")
 
 	res, err := models.UpdateTask(task)
 	if err != nil {

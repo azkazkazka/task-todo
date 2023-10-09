@@ -7,8 +7,8 @@ import (
 )
 
 type Task struct {
-	ID               uint   `gorm:"primaryKey" json:"id"`
-	UserID           uint   `json:"user_id"`
+	ID               string `json:"id" gorm:"-"`
+	UserID           string `json:"user_id"`
 	Title            string `json:"title"`
 	Description      string `json:"description"`
 	DueDateString    string `json:"due_date" gorm:"-"`
@@ -38,7 +38,7 @@ func CreateTask(task *Task) (Response, error) {
 	con := db.CreateCon()
 
 	task.CompletionStatus = false
-	task.UserID = 1 // TODO: sambung sama user
+	task.UserID = "95787cc6-f042-402e-a55a-b01d2f923090" // TODO: ini masih hardcode azka pls benarkan setelah implement verifikasi user
 
 	if err := con.Create(task).Error; err != nil {
 		return res, err

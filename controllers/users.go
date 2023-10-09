@@ -52,12 +52,7 @@ func UpdateUser(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Invalid user payload")
 	}
 
-	userID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid user ID format")
-	}
-
-	user.ID = uint(userID)
+	user.ID = c.Param("id")
 
 	res, err := models.UpdateUser(user)
 	if err != nil {

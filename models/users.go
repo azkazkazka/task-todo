@@ -5,12 +5,12 @@ import (
 )
 
 type User struct {
-	ID        uint   `gorm:"primaryKey" json:"id"`
+	ID        string `json:"id" gorm:"-"`
 	Username  string `json:"username"`
 	Password  string `json:"password"`
 	Email     string `json:"email"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	CreatedAt string `json:"created_at" gorm:"-"`
+	UpdatedAt string `json:"updated_at" gorm:"-"`
 }
 
 func FetchUsers() (Response, error) {
@@ -23,7 +23,6 @@ func FetchUsers() (Response, error) {
 	}
 
 	res.Message = "Successfully fetched users"
-	res.Data = users
 
 	return res, nil
 }
@@ -31,6 +30,7 @@ func FetchUsers() (Response, error) {
 func CreateUser(user *User) (Response, error) {
 	var res Response
 	con := db.CreateCon()
+	res.Data = user
 
 	if err := con.Create(user).Error; err != nil {
 		return res, err
