@@ -1,2 +1,325 @@
-# task-todo
-for Matchmade assessment test
+
+# API Task-Todo
+
+A simple API made for Matchmade assessment:
+
+## Users
+
+### Register
+
+```http
+POST /register
+```
+
+`Headers`
+
+- None
+
+`Request Body`
+| Key       | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `fullname`      | `string` | **Required**. User's fullname |
+| `username`      | `string` | **Required**. User's username (unique) |
+| `password`      | `string` | **Required**. User's password (min. 8 chars, special characters) |
+| `email`      | `string` | **Required**. User's email (unique) |
+
+`Response`
+
+```json
+{
+  "status": 201
+  "data": {
+    "fullname": <NAME>
+    "username": <USERNAME>
+    "email": <EMAIL>
+  }
+  "message": "Successfully registered user"
+}
+```
+
+### Login
+
+```http
+POST /login
+```
+
+`Headers`
+
+- None
+
+`Request Body`
+| Key       | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `username`      | `string` | **Required if email empty**. User's username |
+| `password`      | `string` | **Required**. User's password |
+| `email`      | `string` | **Required if username empty**.  User's email |
+
+`Response`
+
+```json
+{
+  "status": 200
+  "data": {
+    "fullname": <NAME>
+    "username": <USERNAME>
+    "email": <EMAIL>
+  }
+  "message": "Successfully logged in user"
+}
+```
+
+### Get user profile
+
+```http
+GET /profile
+```
+
+`Headers:`
+
+- Auth bearer token
+
+`Request Body`
+
+- None
+
+`Response`
+
+```json
+{
+  "status": 200
+  "data": {
+    "fullname": <NAME>,
+    "username": <USERNAME>
+    "email": <EMAIL>
+  }
+  "message": "Successfully get user profile"
+}
+```
+
+### Update user
+
+```http
+PUT /users
+```
+
+`Headers:`
+
+- Auth bearer token
+
+`Request Body`
+| Key | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `fullname`      | `string` | User's fullname (optional) |
+| `username`      | `string` | User's username (optional) |
+| `email`      | `string` | User's email (optional) |
+
+`Response`
+
+```json
+{
+  "status": 200
+  "data": {
+    "fullname": <NAME>,
+    "username": <USERNAME>
+    "email": <EMAIL>
+  }
+  "message": "Successfully updated user profile"
+}
+```
+
+### Delete user
+
+```http
+DELETE /users
+```
+
+`Headers:`
+
+- Auth bearer token
+
+`Request Body`
+
+- None
+
+`Response`
+
+```json
+{
+  "status": 204
+  "data": {}
+  "message": "Successfully deleted user profile"
+}
+```
+
+### Todos
+
+### Get all todos
+
+```http
+GET /todos
+```
+
+`Headers:`
+
+- Auth bearer token
+
+`Request Body`
+
+- None
+
+`Response`
+
+```json
+{
+  "status": 200
+  "data": [
+    {
+      "id": <ID>
+      "title": <TITLE>
+      "description": <DESCRIPTION>
+      "due_date": <DUEDATE_RFC3339>
+      "completion_status": <COMPLETIONSTATUS>
+      "created_at": <CREATEDAT>
+      "updated_at": <UPDATEDAT>
+    },
+    {
+      "id": <ID>
+      "title": <TITLE>
+      "description": <DESCRIPTION>
+      "due_date": <DUEDATE_RFC3339>
+      "completion_status": <COMPLETIONSTATUS>
+      "created_at": <CREATEDAT>
+      "updated_at": <UPDATEDAT>
+    },
+    ...
+  ]
+  "message": "Successfully get user's to-do list"
+}
+```
+
+### Get todo
+
+```http
+GET /todos/${id}
+```
+
+`Headers:`
+
+- Auth bearer token
+
+`Request Body`
+
+- None
+
+`Response`
+
+```json
+{
+  "status": 200
+  "data": {
+    "id": <ID>
+    "title": <TITLE>
+    "description": <DESCRIPTION>
+    "due_date": <DUEDATE_RFC3339>
+    "completion_status": <COMPLETIONSTATUS>
+    "created_at": <CREATEDAT>
+    "updated_at": <UPDATEDAT>
+  }
+  "message": "Successfully get to-do"
+}
+```
+
+### Create todo
+
+```http
+POST /todos
+```
+
+`Headers:`
+
+- Auth bearer token
+
+`Request Body`
+| Key | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `title`      | `string` | **Required**. Title of todo |
+| `description`      | `string` | **Required**. Description of todo |
+| `due_date`      | `string` | **Required**. Due date of todo |
+
+`Response`
+
+```json
+{
+  "status": 201
+  "data": {
+    "id": <ID>
+    "title": <TITLE>
+    "description": <DESCRIPTION>
+    "due_date": <DUEDATE_RFC3339>
+    "completion_status": <COMPLETIONSTATUS>
+    "created_at": <CREATEDAT>
+    "updated_at": <UPDATEDAT>
+  }
+  "message": "Successfully update to-do"
+}
+```
+
+### Update todo
+
+```http
+PUT /todos/${id}
+```
+
+`Headers:`
+
+- Auth bearer token
+
+`Request Body`
+| Key | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `title`      | `string` | Title of todo (optional) |
+| `description`      | `string` | Description of todo (optional) |
+| `due_date`      | `string` | Due date of todo (optional) |
+| `completion_status`   | `string` | Completion status of todo (optional) |
+
+`Response`
+
+```json
+{
+  "status": 200
+  "data": {
+    "id": <ID>
+    "title": <TITLE>
+    "description": <DESCRIPTION>
+    "due_date": <DUEDATE_RFC3339>
+    "completion_status": <COMPLETIONSTATUS>
+    "created_at": <CREATEDAT>
+    "updated_at": <UPDATEDAT>
+  }
+  "message": "Successfully update to-do"
+}
+```
+
+### Delete todo
+
+```http
+DELETE /todos/${id}
+```
+
+`Headers:`
+
+- Auth bearer token
+
+`Request Body`
+
+- None
+
+`Response`
+
+```json
+{
+  "status": 204
+  "data": {}
+  "message": "Successfully deleted to-do"
+}
+```
