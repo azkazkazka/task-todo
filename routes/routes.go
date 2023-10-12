@@ -4,12 +4,17 @@ import (
 	"net/http"
 
 	"github.com/azkazkazka/task-todo/controllers"
+	"github.com/azkazkazka/task-todo/db"
 	"github.com/azkazkazka/task-todo/middleware"
+	"github.com/azkazkazka/task-todo/models"
 	"github.com/labstack/echo"
 )
 
 func Init() *echo.Echo {
 	e := echo.New()
+	con := db.CreateCon()
+	taskService := &models.TaskService{DB: con}
+	taskController := &controllers.TaskController{Service: taskService}
 
 	protected := e.Group("")
 	protected.Use(middleware.ValidateToken)
@@ -28,11 +33,11 @@ func Init() *echo.Echo {
 	protected.DELETE("/user", controllers.DeleteUser)
 
 	// tasks
-	protected.GET("/tasks", controllers.FetchAllTasks)
-	protected.GET("/tasks/:id", controllers.FetchTask)
-	protected.POST("/tasks", controllers.CreateTask)
-	protected.PUT("/tasks/:id", controllers.UpdateTask)
-	protected.DELETE("/tasks/:id", controllers.DeleteTask)
+	protected.GET("/tasks", taskController.FetchAllTasks)
+	protected.GET("/tasks/:id", taskController.FetchTask)
+	protected.POST("/tasks", taskController.CreateTask)
+	protected.PUT("/tasks/:id", taskController.UpdateTask)
+	protected.DELETE("/tasks/:id", taskController.DeleteTask)
 
 	return e
 }

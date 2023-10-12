@@ -128,5 +128,5 @@ func UpdateUser(c echo.Context) error {
 		return utils.SendErrorResponse(c, errResp)
 	}
 
-	return utils.SendResponse(c, http.StatusOK, data, "Successfully deleted user")
+	return utils.SendResponse(c, http.StatusOK, data, "Successfully updated user")
 }

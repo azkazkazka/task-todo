@@ -136,7 +136,7 @@ func GetUser(userID string) (interface{}, error) {
 	con := db.CreateCon()
 
 	if err := con.Table("users").Where("id = ?", userID).First(user).Error; err == nil {
-		return user, nil
+		return nil, err
 	}
 
 	return user, nil

@@ -9,10 +9,14 @@ import (
 	"github.com/labstack/echo"
 )
 
-func FetchAllTasks(c echo.Context) error {
+type TaskController struct {
+	Service models.ITaskService
+}
+
+func (tc *TaskController) FetchAllTasks(c echo.Context) error {
 	userID := c.Get("userID").(string)
 
-	data, err := models.FetchAllTasks(userID)
+	data, err := tc.Service.FetchAllTasks(userID)
 	if err != nil {
 		errResp := utils.ErrorResponse{
 			Status:  http.StatusInternalServerError,
@@ -25,11 +29,11 @@ func FetchAllTasks(c echo.Context) error {
 	return utils.SendResponse(c, http.StatusOK, data, "Successfully fetched all task")
 }
 
-func FetchTask(c echo.Context) error {
+func (tc *TaskController) FetchTask(c echo.Context) error {
 	taskID := c.Param("id")
 	userID := c.Get("userID").(string)
 
-	data, err := models.FetchTask(taskID, userID)
+	data, err := tc.Service.FetchTask(taskID, userID)
 	if err != nil {
 		errResp := utils.ErrorResponse{
 			Status:  http.StatusInternalServerError,
@@ -42,7 +46,7 @@ func FetchTask(c echo.Context) error {
 	return utils.SendResponse(c, http.StatusOK, data, "Successfully fetched task")
 }
 
-func CreateTask(c echo.Context) error {
+func (tc *TaskController) CreateTask(c echo.Context) error {
 	task := &models.Task{}
 	task.UserID = c.Get("userID").(string)
 
@@ -66,7 +70,7 @@ func CreateTask(c echo.Context) error {
 	}
 	task.DueDate = parsedDueDate
 
-	data, err := models.CreateTask(task)
+	data, err := tc.Service.CreateTask(task)
 	if err != nil {
 		errResp := utils.ErrorResponse{
 			Status:  http.StatusInternalServerError,
@@ -79,11 +83,11 @@ func CreateTask(c echo.Context) error {
 	return utils.SendResponse(c, http.StatusOK, data, "Successfully created task")
 }
 
-func DeleteTask(c echo.Context) error {
+func (tc *TaskController) DeleteTask(c echo.Context) error {
 	taskID := c.Param("id")
 	userID := c.Get("userID").(string)
 
-	data, err := models.DeleteTask(taskID, userID)
+	data, err := tc.Service.DeleteTask(taskID, userID)
 	if err != nil {
 		errResp := utils.ErrorResponse{
 			Status:  http.StatusInternalServerError,
@@ -96,7 +100,7 @@ func DeleteTask(c echo.Context) error {
 	return utils.SendResponse(c, http.StatusOK, data, "Successfully deleted task")
 }
 
-func UpdateTask(c echo.Context) error {
+func (tc *TaskController) UpdateTask(c echo.Context) error {
 	task := &models.Task{}
 	task.UserID = c.Get("userID").(string)
 
@@ -111,7 +115,7 @@ func UpdateTask(c echo.Context) error {
 
 	task.ID = c.Param("id")
 
-	data, err := models.UpdateTask(task)
+	data, err := tc.Service.UpdateTask(task)
 	if err != nil {
 		errResp := utils.ErrorResponse{
 			Status:  http.StatusInternalServerError,

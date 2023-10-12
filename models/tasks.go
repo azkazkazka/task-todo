@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/azkazkazka/task-todo/db"
+	"gorm.io/gorm"
 )
 
 type Task struct {
@@ -37,32 +37,33 @@ type TaskResponse struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 }
 
-func FetchAllTasks(userID string) (interface{}, error) {
-	var tasks []TaskResponse
-	con := db.CreateCon()
+type TaskService struct {
+	DB *gorm.DB
+}
 
-	if err := con.Table("tasks").Where("user_id = ?", userID).Find(&tasks).Error; err != nil {
+func (s *TaskService) FetchAllTasks(userID string) (interface{}, error) {
+	var tasks []TaskResponse
+
+	if err := s.DB.Table("tasks").Where("user_id = ?", userID).Find(&tasks).Error; err != nil {
 		return nil, errors.New("no tasks found")
 	}
 
 	return tasks, nil
 }
 
-func FetchTask(taskID string, userID string) (interface{}, error) {
-	con := db.CreateCon()
+func (s *TaskService) FetchTask(taskID string, userID string) (interface{}, error) {
 	task := &TaskResponse{}
 
-	if err := con.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(task).Error; err != nil {
+	if err := s.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(task).Error; err != nil {
 		return nil, errors.New("failed to fetch task")
 	}
 
 	return task, nil
 }
 
-func CreateTask(task *Task) (interface{}, error) {
-	con := db.CreateCon()
+func (s *TaskService) CreateTask(task *Task) (interface{}, error) {
 
-	if err := con.Table("tasks").Create(task).Error; err != nil {
+	if err := s.DB.Table("tasks").Create(task).Error; err != nil {
 		return nil, errors.New("failed to create task")
 	}
 
@@ -80,32 +81,30 @@ func CreateTask(task *Task) (interface{}, error) {
 	return data, nil
 }
 
-func DeleteTask(taskID string, userID string) (interface{}, error) {
-	con := db.CreateCon()
+func (s *TaskService) DeleteTask(taskID string, userID string) (interface{}, error) {
 	existingTask := &TaskResponse{}
 
-	if err := con.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(existingTask).Error; err != nil {
+	if err := s.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(existingTask).Error; err != nil {
 		return nil, errors.New("task does not exist")
 	}
 
-	if err := con.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).Delete(existingTask).Error; err != nil {
+	if err := s.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).Delete(existingTask).Error; err != nil {
 		return nil, errors.New("failed to delete task")
 	}
 
 	return nil, nil
 }
 
-func UpdateTask(task *Task) (interface{}, error) {
-	con := db.CreateCon()
+func (s *TaskService) UpdateTask(task *Task) (interface{}, error) {
 
 	existingTask := &Task{}
-	if err := con.Table("tasks").Where("id = ? AND user_id = ?", task.ID, task.UserID).First(existingTask).Error; err != nil {
+	if err := s.DB.Table("tasks").Where("id = ? AND user_id = ?", task.ID, task.UserID).First(existingTask).Error; err != nil {
 		return nil, errors.New("task does not exist")
 	}
 
 	task.UpdatedAt = time.Now()
 
-	if err := con.Table("tasks").Model(&Task{}).Where("id = ? AND user_id = ?", task.ID, task.UserID).Updates(task).Error; err != nil {
+	if err := s.DB.Table("tasks").Model(&Task{}).Where("id = ? AND user_id = ?", task.ID, task.UserID).Updates(task).Error; err != nil {
 		return nil, errors.New("failed to delete task")
 	}
 
