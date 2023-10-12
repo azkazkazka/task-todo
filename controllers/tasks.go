@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/azkazkazka/task-todo/models"
@@ -10,65 +9,117 @@ import (
 	"github.com/labstack/echo"
 )
 
-func FetchTasks(c echo.Context) error {
-	res, err := models.FetchTasks()
+func FetchAllTasks(c echo.Context) error {
+	userID := c.Get("userID").(string)
+
+	data, err := models.FetchAllTasks(userID)
 	if err != nil {
-		return utils.HandleError(c, err)
+		errResp := utils.ErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to fetch all tasks",
+			Details: err.Error(),
+		}
+		return utils.SendErrorResponse(c, errResp)
 	}
 
-	return c.JSON(http.StatusOK, res)
+	return utils.SendResponse(c, http.StatusOK, data, "Successfully fetched all task")
+}
+
+func FetchTask(c echo.Context) error {
+	taskID := c.Param("id")
+	userID := c.Get("userID").(string)
+
+	data, err := models.FetchTask(taskID, userID)
+	if err != nil {
+		errResp := utils.ErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to fetch task",
+			Details: err.Error(),
+		}
+		return utils.SendErrorResponse(c, errResp)
+	}
+
+	return utils.SendResponse(c, http.StatusOK, data, "Successfully fetched task")
 }
 
 func CreateTask(c echo.Context) error {
 	task := &models.Task{}
+	task.UserID = c.Get("userID").(string)
 
 	if err := c.Bind(task); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
+		errResp := utils.ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Bad Request",
+			Details: err.Error(),
+		}
+		return utils.SendErrorResponse(c, errResp)
 	}
 
 	parsedDueDate, err := time.Parse(time.RFC3339, task.DueDateString)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid due_date format. It should be RFC3339 formatted string.")
+		errResp := utils.ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Invalid due date format (accepts RFC3339)",
+			Details: err.Error(),
+		}
+		return utils.SendErrorResponse(c, errResp)
 	}
 	task.DueDate = parsedDueDate
 
-	task.CreatedAt = time.Now()
-	task.UpdatedAt = time.Now()
-
-	res, err := models.CreateTask(task)
+	data, err := models.CreateTask(task)
 	if err != nil {
-		return utils.HandleError(c, err)
+		errResp := utils.ErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to create task",
+			Details: err.Error(),
+		}
+		return utils.SendErrorResponse(c, errResp)
 	}
 
-	return c.JSON(http.StatusOK, res)
+	return utils.SendResponse(c, http.StatusOK, data, "Successfully created task")
 }
 
 func DeleteTask(c echo.Context) error {
-	taskID, err := strconv.Atoi(c.Param("id"))
+	taskID := c.Param("id")
+	userID := c.Get("userID").(string)
+
+	data, err := models.DeleteTask(taskID, userID)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid task ID format")
+		errResp := utils.ErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to delete task",
+			Details: err.Error(),
+		}
+		return utils.SendErrorResponse(c, errResp)
 	}
 
-	res, err := models.DeleteTask(uint(taskID))
-	if err != nil {
-		return utils.HandleError(c, err)
-	}
-
-	return c.JSON(http.StatusOK, res)
+	return utils.SendResponse(c, http.StatusOK, data, "Successfully deleted task")
 }
 
 func UpdateTask(c echo.Context) error {
 	task := &models.Task{}
+	task.UserID = c.Get("userID").(string)
+
 	if err := c.Bind(task); err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid task payload")
+		errResp := utils.ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: "Invalid task payload",
+			Details: err.Error(),
+		}
+		return utils.SendErrorResponse(c, errResp)
 	}
 
 	task.ID = c.Param("id")
 
-	res, err := models.UpdateTask(task)
+	data, err := models.UpdateTask(task)
 	if err != nil {
-		return utils.HandleError(c, err)
+		errResp := utils.ErrorResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to update task",
+			Details: err.Error(),
+		}
+		return utils.SendErrorResponse(c, errResp)
 	}
 
-	return c.JSON(http.StatusOK, res)
+	return utils.SendResponse(c, http.StatusOK, data, "Successfully updated task")
 }

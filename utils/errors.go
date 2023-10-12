@@ -1,13 +1,15 @@
 package utils
 
 import (
-	"net/http"
-
 	"github.com/labstack/echo"
 )
 
-func HandleError(c echo.Context, err error) error {
-	return c.JSON(http.StatusInternalServerError, map[string]string{
-		"message": err.Error(),
-	})
+type ErrorResponse struct {
+	Status    int    `json:"status"`
+	Message string `json:"message"`
+	Details string `json:"details,omitempty"`
+}
+
+func SendErrorResponse(c echo.Context, errResp ErrorResponse) error {
+    return c.JSON(errResp.Status, errResp)
 }

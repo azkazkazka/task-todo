@@ -11,6 +11,7 @@ A simple API made for Matchmade assessment:
 POST /register
 ```
 
+register
 `Headers`
 
 - None
@@ -18,10 +19,10 @@ POST /register
 `Request Body`
 | Key       | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
-| `fullname`      | `string` | **Required**. User's fullname |
-| `username`      | `string` | **Required**. User's username (unique) |
-| `password`      | `string` | **Required**. User's password (min. 8 chars, special characters) |
-| `email`      | `string` | **Required**. User's email (unique) |
+| `fullname` | `string` | **Required**. User's fullname |
+| `username` | `string` | **Required**. User's username (unique) |
+| `password` | `string` | **Required**. User's password (min. 8 chars, special characters) |
+| `email`    | `string` | **Required**. User's email (unique) |
 
 `Response`
 
@@ -71,7 +72,7 @@ POST /login
 ### Get user profile
 
 ```http
-GET /profile
+GET /user
 ```
 
 `Headers:`
@@ -99,7 +100,7 @@ GET /profile
 ### Update user
 
 ```http
-PUT /users
+PUT /user
 ```
 
 `Headers:`
@@ -130,7 +131,7 @@ PUT /users
 ### Delete user
 
 ```http
-DELETE /users
+DELETE /user
 ```
 
 `Headers:`
@@ -151,12 +152,12 @@ DELETE /users
 }
 ```
 
-### Todos
+## Tasks
 
-### Get all todos
+### Get all tasks
 
 ```http
-GET /todos
+GET /tasks
 ```
 
 `Headers:`
@@ -197,10 +198,10 @@ GET /todos
 }
 ```
 
-### Get todo
+### Get task
 
 ```http
-GET /todos/${id}
+GET /tasks/${id}
 ```
 
 `Headers:`
@@ -229,10 +230,10 @@ GET /todos/${id}
 }
 ```
 
-### Create todo
+### Create task
 
 ```http
-POST /todos
+POST /tasks
 ```
 
 `Headers:`
@@ -242,9 +243,9 @@ POST /todos
 `Request Body`
 | Key | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
-| `title`      | `string` | **Required**. Title of todo |
-| `description`      | `string` | **Required**. Description of todo |
-| `due_date`      | `string` | **Required**. Due date of todo |
+| `title`      | `string` | **Required**. Title of task |
+| `description`      | `string` | **Required**. Description of task |
+| `due_date`      | `string` | **Required**. Due date of task |
 
 `Response`
 
@@ -264,10 +265,10 @@ POST /todos
 }
 ```
 
-### Update todo
+### Update task
 
 ```http
-PUT /todos/${id}
+PUT /tasks/${id}
 ```
 
 `Headers:`
@@ -277,10 +278,10 @@ PUT /todos/${id}
 `Request Body`
 | Key | Type     | Description                       |
 | :-------- | :------- | :-------------------------------- |
-| `title`      | `string` | Title of todo (optional) |
-| `description`      | `string` | Description of todo (optional) |
-| `due_date`      | `string` | Due date of todo (optional) |
-| `completion_status`   | `string` | Completion status of todo (optional) |
+| `title`      | `string` | Title of task (optional) |
+| `description`      | `string` | Description of task (optional) |
+| `due_date`      | `string` | Due date of task (optional) |
+| `completion_status`   | `string` | Completion status of task (optional) |
 
 `Response`
 
@@ -300,10 +301,10 @@ PUT /todos/${id}
 }
 ```
 
-### Delete todo
+### Delete task
 
 ```http
-DELETE /todos/${id}
+DELETE /tasks/${id}
 ```
 
 `Headers:`

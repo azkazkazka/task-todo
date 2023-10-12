@@ -1,32 +1,38 @@
 package routes
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/azkazkazka/task-todo/controllers"
+	"github.com/azkazkazka/task-todo/middleware"
 	"github.com/labstack/echo"
 )
 
 func Init() *echo.Echo {
-	fmt.Println("hoho")
 	e := echo.New()
+
+	protected := e.Group("")
+	protected.Use(middleware.ValidateToken)
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hi!")
 	})
 
+	// register & login
+	e.POST("/register", controllers.Register)
+	e.POST("/login", controllers.Login)
+
 	// users
-	e.GET("/users", controllers.FetchUsers)
-	e.POST("/users", controllers.CreateUser)
-	e.PUT("/users/:id", controllers.UpdateUser)
-	e.DELETE("/users/:id", controllers.DeleteUser)
+	protected.GET("/user", controllers.GetUser)
+	protected.PUT("/user", controllers.UpdateUser)
+	protected.DELETE("/user", controllers.DeleteUser)
 
 	// tasks
-	e.GET("/tasks", controllers.FetchTasks)
-	e.POST("/tasks", controllers.CreateTask)
-	e.PUT("/tasks/:id", controllers.UpdateTask)
-	e.DELETE("/tasks/:id", controllers.DeleteTask)
+	protected.GET("/tasks", controllers.FetchAllTasks)
+	protected.GET("/tasks/:id", controllers.FetchTask)
+	protected.POST("/tasks", controllers.CreateTask)
+	protected.PUT("/tasks/:id", controllers.UpdateTask)
+	protected.DELETE("/tasks/:id", controllers.DeleteTask)
 
 	return e
 }

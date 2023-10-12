@@ -1,13 +1,14 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/azkazkazka/task-todo/db"
 )
 
 type Task struct {
-	ID               string `json:"id" gorm:"-"`
+	ID               string `json:"id" gorm:"type:uuid;primaryKey"`
 	UserID           string `json:"user_id"`
 	Title            string `json:"title"`
 	Description      string `json:"description"`
@@ -18,66 +19,106 @@ type Task struct {
 	UpdatedAt        time.Time `json:"updated_at"`
 }
 
-func FetchTasks() (Response, error) {
-	var res Response
-	var tasks []Task
-	con := db.CreateCon()
-
-	if err := con.Find(&tasks).Error; err != nil {
-		return res, err
-	}
-
-	res.Message = "Successfully fetched tasks"
-	res.Data = tasks
-
-	return res, nil
+type TaskRequest struct {
+	UserID      string `json:"user_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	DueDate     string `json:"due_date"`
 }
 
-func CreateTask(task *Task) (Response, error) {
-	var res Response
-	con := db.CreateCon()
-
-	task.CompletionStatus = false
-	task.UserID = "95787cc6-f042-402e-a55a-b01d2f923090" // TODO: ini masih hardcode azka pls benarkan setelah implement verifikasi user
-
-	if err := con.Create(task).Error; err != nil {
-		return res, err
-	}
-
-	res.Message = "Successfully created tasks"
-	return res, nil
+type TaskResponse struct {
+	ID               string    `json:"id"`
+	UserID           string    `json:"user_id"`
+	Title            string    `json:"title"`
+	Description      string    `json:"description"`
+	DueDate          time.Time `json:"due_date"`
+	CompletionStatus bool      `json:"completion_status"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }
 
-func DeleteTask(taskID uint) (Response, error) {
-	var res Response
+func FetchAllTasks(userID string) (interface{}, error) {
+	var tasks []TaskResponse
 	con := db.CreateCon()
+
+	if err := con.Table("tasks").Where("user_id = ?", userID).Find(&tasks).Error; err != nil {
+		return nil, errors.New("no tasks found")
+	}
+
+	return tasks, nil
+}
+
+func FetchTask(taskID string, userID string) (interface{}, error) {
+	con := db.CreateCon()
+	task := &TaskResponse{}
+
+	if err := con.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(task).Error; err != nil {
+		return nil, errors.New("failed to fetch task")
+	}
+
+	return task, nil
+}
+
+func CreateTask(task *Task) (interface{}, error) {
+	con := db.CreateCon()
+
+	if err := con.Table("tasks").Create(task).Error; err != nil {
+		return nil, errors.New("failed to create task")
+	}
+
+	data := TaskResponse{
+		ID:               task.ID,
+		UserID:           task.UserID,
+		Title:            task.Title,
+		Description:      task.Description,
+		DueDate:          task.DueDate,
+		CompletionStatus: task.CompletionStatus,
+		CreatedAt:        task.CreatedAt,
+		UpdatedAt:        task.UpdatedAt,
+	}
+
+	return data, nil
+}
+
+func DeleteTask(taskID string, userID string) (interface{}, error) {
+	con := db.CreateCon()
+	existingTask := &TaskResponse{}
+
+	if err := con.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(existingTask).Error; err != nil {
+		return nil, errors.New("task does not exist")
+	}
+
+	if err := con.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).Delete(existingTask).Error; err != nil {
+		return nil, errors.New("failed to delete task")
+	}
+
+	return nil, nil
+}
+
+func UpdateTask(task *Task) (interface{}, error) {
+	con := db.CreateCon()
+
 	existingTask := &Task{}
-
-	if err := con.First(existingTask, taskID).Error; err != nil {
-		return res, err
+	if err := con.Table("tasks").Where("id = ? AND user_id = ?", task.ID, task.UserID).First(existingTask).Error; err != nil {
+		return nil, errors.New("task does not exist")
 	}
 
-	if err := con.Delete(existingTask).Error; err != nil {
-		return res, err
+	task.UpdatedAt = time.Now()
+
+	if err := con.Table("tasks").Model(&Task{}).Where("id = ? AND user_id = ?", task.ID, task.UserID).Updates(task).Error; err != nil {
+		return nil, errors.New("failed to delete task")
 	}
 
-	res.Message = "Successfully deleted task"
-	return res, nil
-}
-
-func UpdateTask(task *Task) (Response, error) {
-	var res Response
-	con := db.CreateCon()
-
-	existingTask := &Task{}
-	if err := con.First(existingTask, task.ID).Error; err != nil {
-		return res, err
+	data := TaskResponse{
+		ID:               task.ID,
+		UserID:           task.UserID,
+		Title:            task.Title,
+		Description:      task.Description,
+		DueDate:          task.DueDate,
+		CompletionStatus: task.CompletionStatus,
+		CreatedAt:        task.CreatedAt,
+		UpdatedAt:        task.UpdatedAt,
 	}
 
-	if err := con.Model(&Task{}).Where("id = ?", task.ID).Updates(task).Error; err != nil {
-		return res, err
-	}
-
-	res.Message = "Successfully updated task"
-	return res, nil
+	return data, nil
 }
