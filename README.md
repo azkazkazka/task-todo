@@ -11,10 +11,11 @@ A simple API made for Matchmade assessment:
 POST /register
 ```
 
-register
 `Headers`
 
-- None
+| Key       | Value     |
+| :-------- | :------- |
+| - | - |
 
 `Request Body`
 | Key       | Type     | Description                       |
@@ -46,7 +47,9 @@ POST /login
 
 `Headers`
 
-- None
+| Key       | Value     |
+| :-------- | :------- |
+| - | - |
 
 `Request Body`
 | Key       | Type     | Description                       |
@@ -77,7 +80,10 @@ GET /user
 
 `Headers:`
 
-- Auth bearer token
+| Key       | Value     |
+| :-------- | :------- |
+| `Authorization` | `Bearer <token>` |
+
 
 `Request Body`
 
@@ -105,7 +111,9 @@ PUT /user
 
 `Headers:`
 
-- Auth bearer token
+| Key       | Value     |
+| :-------- | :------- |
+| `Authorization` | `Bearer <token>` |
 
 `Request Body`
 | Key | Type     | Description                       |
@@ -136,7 +144,9 @@ DELETE /user
 
 `Headers:`
 
-- Auth bearer token
+| Key       | Value     |
+| :-------- | :------- |
+| `Authorization` | `Bearer <token>` |
 
 `Request Body`
 
@@ -162,7 +172,9 @@ GET /tasks
 
 `Headers:`
 
-- Auth bearer token
+| Key       | Value     |
+| :-------- | :------- |
+| `Authorization` | `Bearer <token>` |
 
 `Request Body`
 
@@ -206,7 +218,9 @@ GET /tasks/${id}
 
 `Headers:`
 
-- Auth bearer token
+| Key       | Value     |
+| :-------- | :------- |
+| `Authorization` | `Bearer <token>` |
 
 `Request Body`
 
@@ -238,7 +252,9 @@ POST /tasks
 
 `Headers:`
 
-- Auth bearer token
+| Key       | Value     |
+| :-------- | :------- |
+| `Authorization` | `Bearer <token>` |
 
 `Request Body`
 | Key | Type     | Description                       |
@@ -273,7 +289,9 @@ PUT /tasks/${id}
 
 `Headers:`
 
-- Auth bearer token
+| Key       | Value     |
+| :-------- | :------- |
+| `Authorization` | `Bearer <token>` |
 
 `Request Body`
 | Key | Type     | Description                       |
@@ -309,7 +327,9 @@ DELETE /tasks/${id}
 
 `Headers:`
 
-- Auth bearer token
+| Key       | Value     |
+| :-------- | :------- |
+| `Authorization` | `Bearer <token>` |
 
 `Request Body`
 
