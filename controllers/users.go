@@ -9,59 +9,58 @@ import (
 	"github.com/labstack/echo"
 )
 
-func Register(c echo.Context) error {
+type UserController struct {
+	Service models.IUserService
+}
+
+func (uc *UserController) Register(c echo.Context) error {
 	user := &models.UserRequest{}
 	if err := c.Bind(user); err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusBadRequest,
 			Message: "Bad Request",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusBadRequest, errResp)
 	}
 
-	data, err := models.Register(user)
+	data, err := uc.Service.Register(user)
 	if err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusInternalServerError,
 			Message: "Failed to register account",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, errResp)
 	}
 
-	return utils.SendResponse(c, http.StatusOK, data, "Successfully registered account")
+	return utils.SendResponse(c, http.StatusOK, data)
 }
 
-func Login(c echo.Context) error {
+func (uc *UserController) Login(c echo.Context) error {
 	loginRequest := &models.LoginRequest{}
 	if err := c.Bind(loginRequest); err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusBadRequest,
 			Message: "Bad Request",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusBadRequest, errResp)
 	}
 
-	user, err := models.AuthenticateUser(loginRequest)
+	user, err := uc.Service.AuthenticateUser(loginRequest)
 	if err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusInternalServerError,
 			Message: "Failed to authenticate user",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, errResp)
 	}
 
 	token, err := auth.GenerateToken(user.ID)
 	if err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusInternalServerError,
 			Message: "Failed to generate token",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, errResp)
 	}
 
 	data := map[string]interface{}{
@@ -69,64 +68,60 @@ func Login(c echo.Context) error {
 		"token": token,
 	}
 
-	return utils.SendResponse(c, http.StatusOK, data, "Successfully logged in")
+	return utils.SendResponse(c, http.StatusOK, data)
 }
 
-func GetUser(c echo.Context) error {
+func (uc *UserController) GetUser(c echo.Context) error {
 	userID := c.Get("userID").(string)
 
-	data, err := models.GetUser(userID)
+	data, err := uc.Service.GetUser(userID)
 	if err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusInternalServerError,
 			Message: "Failed to get user",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, errResp)
 	}
 
-	return utils.SendResponse(c, http.StatusOK, data, "Successfully get user")
+	return utils.SendResponse(c, http.StatusOK, data)
 }
 
 
-func DeleteUser(c echo.Context) error {
+func (uc *UserController) DeleteUser(c echo.Context) error {
 	userID := c.Get("userID").(string)
 
-	data, err := models.DeleteUser(userID)
+	data, err := uc.Service.DeleteUser(userID)
 	if err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusInternalServerError,
 			Message: "Failed to delete user",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, errResp)
 	}
 
-	return utils.SendResponse(c, http.StatusOK, data, "Successfully deleted user")
+	return utils.SendResponse(c, http.StatusOK, data)
 }
 
-func UpdateUser(c echo.Context) error {
+func (uc *UserController) UpdateUser(c echo.Context) error {
 	user := &models.UpdateRequest{}
 	if err := c.Bind(user); err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusBadRequest,
 			Message: "Invalid user payload",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusBadRequest, errResp)
 	}
 
 	user.ID = c.Get("userID").(string)
 
-	data, err := models.UpdateUser(user)
+	data, err := uc.Service.UpdateUser(user)
 	if err != nil {
 		errResp := utils.ErrorResponse{
-			Status:  http.StatusInternalServerError,
 			Message: "Failed to update user",
 			Details: err.Error(),
 		}
-		return utils.SendErrorResponse(c, errResp)
+		return utils.SendErrorResponse(c, http.StatusInternalServerError, errResp)
 	}
 
-	return utils.SendResponse(c, http.StatusOK, data, "Successfully updated user")
+	return utils.SendResponse(c, http.StatusOK, data)
 }

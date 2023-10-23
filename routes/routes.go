@@ -4,17 +4,17 @@ import (
 	"net/http"
 
 	"github.com/azkazkazka/task-todo/controllers"
-	"github.com/azkazkazka/task-todo/db"
 	"github.com/azkazkazka/task-todo/middleware"
 	"github.com/azkazkazka/task-todo/models"
 	"github.com/labstack/echo"
+	"gorm.io/gorm"
 )
 
-func Init() *echo.Echo {
+func Init(db *gorm.DB) *echo.Echo {
 	e := echo.New()
-	con := db.CreateCon()
-	taskService := &models.TaskService{DB: con}
-	taskController := &controllers.TaskController{Service: taskService}
+	taskController := &controllers.TaskController{Service: &models.GormTaskService{DB: db}}
+
+	userController := &controllers.UserController{Service: &models.GormUserService{DB: db}}
 
 	protected := e.Group("")
 	protected.Use(middleware.ValidateToken)
@@ -24,13 +24,13 @@ func Init() *echo.Echo {
 	})
 
 	// register & login
-	e.POST("/register", controllers.Register)
-	e.POST("/login", controllers.Login)
+	e.POST("/register", userController.Register)
+	e.POST("/login", userController.Login)
 
 	// users
-	protected.GET("/user", controllers.GetUser)
-	protected.PUT("/user", controllers.UpdateUser)
-	protected.DELETE("/user", controllers.DeleteUser)
+	protected.GET("/user", userController.GetUser)
+	protected.PUT("/user", userController.UpdateUser)
+	protected.DELETE("/user", userController.DeleteUser)
 
 	// tasks
 	protected.GET("/tasks", taskController.FetchAllTasks)

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/azkazkazka/task-todo/auth"
-	"github.com/azkazkazka/task-todo/db"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type UserRequest struct {
@@ -51,7 +51,15 @@ type AuthResponse struct {
 	UpdatedAt time.Time `json:"updated_at" gorm:"-"`
 }
 
-func AuthResponseToUserResponse(authResponse *AuthResponse) *UserResponse {
+type UserService struct {
+	Service IUserService
+}
+
+type GormUserService struct {
+	DB *gorm.DB
+}
+
+func (us *GormUserService) AuthResponseToUserResponse(authResponse *AuthResponse) *UserResponse {
 	if authResponse == nil {
 		return nil
 	}
@@ -67,9 +75,8 @@ func AuthResponseToUserResponse(authResponse *AuthResponse) *UserResponse {
 	return userResponse
 }
 
-func Register(userRequest *UserRequest) (interface{}, error) {
+func (us *GormUserService) Register(userRequest *UserRequest) (interface{}, error) {
 	var err error
-	con := db.CreateCon()
 
 	user := &UserResponse{
 		Fullname: userRequest.Fullname,
@@ -82,93 +89,88 @@ func Register(userRequest *UserRequest) (interface{}, error) {
 
 	user.Password, err = auth.HashPassword(user.Password)
 	if err != nil {
-		return nil, errors.New("failed to hash password")
+		return nil, err
 	}
 
-	if err := con.Table("users").Create(user).Error; err != nil {
-		return nil, errors.New("failed to create user")
-	}
-
-	return user, nil
-}
-
-func AuthenticateUser(loginRequest *LoginRequest) (*UserResponse, error) {
-	user, err := findUserByUsernameOrEmail(loginRequest.Username, loginRequest.Email)
-	if err != nil {
-		return nil, errors.New("could not find user by username or email")
-	}
-
-	if user == nil || !auth.CheckPasswordHash(loginRequest.Password, user.Password) {
-		return nil, errors.New("invalid credentials")
-	}
-
-	return AuthResponseToUserResponse(user), nil
-}
-
-func findUserByUsernameOrEmail(username, email string) (*AuthResponse, error) {
-	con := db.CreateCon()
-	user := &AuthResponse{}
-
-	if err := con.Table("users").Where("username = ?", username).First(user).Error; err == nil {
-		return user, nil
-	}
-
-	if err := con.Table("users").Where("email = ?", email).First(user).Error; err == nil {
-		return user, nil
-	}
-
-	return nil, errors.New("user not found")
-}
-
-func FetchAllUsers() (interface{}, error) {
-	var users []UserResponse
-	con := db.CreateCon()
-
-	if err := con.Table("users").Find(&users).Error; err != nil {
-		return nil, errors.New("no users found")
-	}
-
-	return users, nil
-}
-
-func GetUser(userID string) (interface{}, error) {
-	user := &UserResponse{}
-	con := db.CreateCon()
-
-	if err := con.Table("users").Where("id = ?", userID).First(user).Error; err == nil {
+	if err := us.DB.Table("users").Create(user).Error; err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func DeleteUser(userID string) (interface{}, error) {
-	con := db.CreateCon()
-	existingUser := &UserResponse{}
-
-	if err := con.Table("users").First(existingUser, userID).Error; err != nil {
-		return nil, errors.New("user does not exist")
+func (us *GormUserService) AuthenticateUser(loginRequest *LoginRequest) (*UserResponse, error) {
+	user, err := us.findUserByUsernameOrEmail(loginRequest.Username, loginRequest.Email)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := con.Table("users").Delete(existingUser).Error; err != nil {
-		return nil, errors.New("failed to delete user")
+	if user == nil || !auth.CheckPasswordHash(loginRequest.Password, user.Password) {
+		return nil, err
+	}
+
+	return us.AuthResponseToUserResponse(user), nil
+}
+
+func (us *GormUserService) findUserByUsernameOrEmail(username, email string) (*AuthResponse, error) {
+	user := &AuthResponse{}
+
+	if err := us.DB.Table("users").Where("username = ?", username).First(user).Error; err == nil {
+		return user, nil
+	}
+
+	if err := us.DB.Table("users").Where("email = ?", email).First(user).Error; err == nil {
+		return user, nil
+	}
+
+	return nil, errors.New("user not found")
+}
+
+func (us *GormUserService) FetchAllUsers() (interface{}, error) {
+	var users []UserResponse
+
+	if err := us.DB.Table("users").Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (us *GormUserService) GetUser(userID string) (interface{}, error) {
+	user := &UserResponse{}
+
+	if err := us.DB.Table("users").Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (us *GormUserService) DeleteUser(userID string) (interface{}, error) {
+	existingUser := &UserResponse{}
+
+	if err := us.DB.Table("users").First(&existingUser).Where("id = ?", userID).Error; err != nil {
+		return nil, err
+	}
+
+	if err := us.DB.Table("users").Delete(existingUser).Error; err != nil {
+		return nil, err
 	}
 
 	return nil, nil
 }
 
-func UpdateUser(user *UpdateRequest) (interface{}, error) {
-	con := db.CreateCon()
+func (us *GormUserService) UpdateUser(user *UpdateRequest) (interface{}, error) {
 
 	existingUser := &UserResponse{}
-	if err := con.Table("users").First(existingUser, user.ID).Error; err != nil {
-		return nil, errors.New("user does not exist")
+	if err := us.DB.Table("users").First(&existingUser).Where("id = ?", user.ID).Error; err != nil {
+		return nil, err
 	}
 
 	user.UpdatedAt = time.Now()
 
-	if err := con.Table("users").Model(&UserResponse{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
-		return nil, errors.New("failed to update user")
+	if err := us.DB.Table("users").Model(&UserResponse{}).Where("id = ?", user.ID).Updates(user).Error; err != nil {
+		return nil, err
 	}
 
 	return user, nil

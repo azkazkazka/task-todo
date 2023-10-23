@@ -4,11 +4,12 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Task struct {
-	ID               string `json:"id" gorm:"type:uuid;primaryKey"`
+	ID               string `json:"-" gorm:"type:uuid;primaryKey"`
 	UserID           string `json:"user_id"`
 	Title            string `json:"title"`
 	Description      string `json:"description"`
@@ -38,32 +39,37 @@ type TaskResponse struct {
 }
 
 type TaskService struct {
+	Service ITaskService
+}
+
+type GormTaskService struct {
 	DB *gorm.DB
 }
 
-func (s *TaskService) FetchAllTasks(userID string) (interface{}, error) {
+func (ts *GormTaskService) FetchAllTasks(userID string) (interface{}, error) {
 	var tasks []TaskResponse
 
-	if err := s.DB.Table("tasks").Where("user_id = ?", userID).Find(&tasks).Error; err != nil {
+	if err := ts.DB.Table("tasks").Where("user_id = ?", userID).Find(&tasks).Error; err != nil {
 		return nil, errors.New("no tasks found")
 	}
 
 	return tasks, nil
 }
 
-func (s *TaskService) FetchTask(taskID string, userID string) (interface{}, error) {
+func (ts *GormTaskService) FetchTask(taskID string, userID string) (interface{}, error) {
 	task := &TaskResponse{}
 
-	if err := s.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(task).Error; err != nil {
+	if err := ts.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(task).Error; err != nil {
 		return nil, errors.New("failed to fetch task")
 	}
 
 	return task, nil
 }
 
-func (s *TaskService) CreateTask(task *Task) (interface{}, error) {
+func (ts *GormTaskService) CreateTask(task *Task) (interface{}, error) {
+	task.ID = uuid.New().String()
 
-	if err := s.DB.Table("tasks").Create(task).Error; err != nil {
+	if err := ts.DB.Table("tasks").Create(&task).Error; err != nil {
 		return nil, errors.New("failed to create task")
 	}
 
@@ -81,30 +87,30 @@ func (s *TaskService) CreateTask(task *Task) (interface{}, error) {
 	return data, nil
 }
 
-func (s *TaskService) DeleteTask(taskID string, userID string) (interface{}, error) {
+func (ts *GormTaskService) DeleteTask(taskID string, userID string) (interface{}, error) {
 	existingTask := &TaskResponse{}
 
-	if err := s.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(existingTask).Error; err != nil {
+	if err := ts.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).First(&existingTask).Error; err != nil {
 		return nil, errors.New("task does not exist")
 	}
 
-	if err := s.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).Delete(existingTask).Error; err != nil {
+	if err := ts.DB.Table("tasks").Where("id = ? AND user_id = ?", taskID, userID).Delete(existingTask).Error; err != nil {
 		return nil, errors.New("failed to delete task")
 	}
 
 	return nil, nil
 }
 
-func (s *TaskService) UpdateTask(task *Task) (interface{}, error) {
+func (ts *GormTaskService) UpdateTask(task *Task) (interface{}, error) {
 
 	existingTask := &Task{}
-	if err := s.DB.Table("tasks").Where("id = ? AND user_id = ?", task.ID, task.UserID).First(existingTask).Error; err != nil {
+	if err := ts.DB.Table("tasks").Where("id = ? AND user_id = ?", task.ID, task.UserID).First(&existingTask).Error; err != nil {
 		return nil, errors.New("task does not exist")
 	}
 
 	task.UpdatedAt = time.Now()
 
-	if err := s.DB.Table("tasks").Model(&Task{}).Where("id = ? AND user_id = ?", task.ID, task.UserID).Updates(task).Error; err != nil {
+	if err := ts.DB.Table("tasks").Model(&Task{}).Where("id = ? AND user_id = ?", task.ID, task.UserID).Updates(&task).Error; err != nil {
 		return nil, errors.New("failed to delete task")
 	}
 
